@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; connect-src 'self' blob: data: https://*.picovoice.ai; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'">
+  <title>Izza</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="error"></div>
+  <div id="hud">
+    <div id="status-line"></div>
+    <input id="cmd" placeholder="Say “Hey Izza”, press Ctrl+Alt+J, or type…" autocomplete="off" spellcheck="false">
+  </div>
+  <script src="/node_modules/@picovoice/web-voice-processor/dist/iife/index.js"></script>
+  <script src="/node_modules/@picovoice/porcupine-web/dist/iife/index.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

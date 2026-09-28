@@ -1,0 +1,28 @@
+{
+  "chrome": { "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", "profile": "Default" },
+  "vscode": { "path": "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe" },
+  "claude": { "path": "%APPDATA%\\npm\\node_modules\\@anthropic-ai\\claude-code\\bin\\claude.exe" },
+  "terminal": { "path": "%LOCALAPPDATA%\\Microsoft\\WindowsApps\\wt.exe" },
+  "apps": {
+    "teams": { "description": "Microsoft Teams (web, in Chrome)", "url": "https://teams.microsoft.com/" },
+    "jira": { "description": "Jira (web, in Chrome)", "url": "" },
+    "outlook": { "description": "Outlook email (web, in Chrome)", "url": "https://outlook.office.com/mail/" }
+  },
+  "workspaces": {
+    "agentic": {
+      "description": "Agentic dev: the Jarvis project in C:\\Zilmoney\\Agentic with its Claude Code session",
+      "folder": "C:\\Zilmoney\\Agentic",
+      "claude": { "mode": "none", "sessionId": "cf7afb18-a723-4420-b5e2-3541adca71f1" }
+    }
+  },
+  "routines": {
+    "start_day": {
+      "description": "Start my workday: Teams, Jira, Outlook and the agentic workspace",
+      "steps": ["app:teams", "app:jira", "app:outlook", "workspace:agentic"]
+    }
+  },
+  "memory": { "suggestAfter": 3 },
+  "face": { "display": 0, "fullscreen": true },
+  "voice": { "voice": "af_heart", "wakeWord": "hey izza", "listenTimeoutMs": 6000, "maxUtteranceMs": 10000 },
+  "agent": { "enabled": true, "maxWorkers": 3, "managerModel": "sonnet", "projectsRoot": "C:\\Zilmoney" }
+}

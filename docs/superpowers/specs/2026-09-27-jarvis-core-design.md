@@ -30,7 +30,7 @@ Voice in/out, animated face, screenshots/vision, dispatching coding tasks to Cla
 - **No Python** installed → no Python dependencies.
 - 7.4 GB RAM, no CUDA GPU → no local models in v1.
 - Claude Code CLI supports `-p`, `--model`, `--system-prompt`, `--tools`, `--json-schema`, `--output-format json`, `--no-session-persistence`, `--continue`, `--resume <id>`.
-- Windows Terminal (`wt.exe`) and Chrome are installed. VS Code is being installed; its CLI (`code`) path is configurable.
+- Windows Terminal (`wt.exe`) and Chrome are installed. VS Code is being installed. Executables are launched by full path (`chrome.path`, `vscode.path`, `claude.path`; `%VAR%` expanded) — never through a shell. Claude Code is a native `claude.exe` under the npm folder.
 - Work laptop with ZilMoney/Forge/AWS access → allowlist + confirm are mandatory.
 
 ## 4. Approach
@@ -68,7 +68,7 @@ Node wins: already installed, native `fetch` for Jev/OpenRouter, built-in `node:
 | Catalog | `src/catalog.ts` | List of callable intents (id, description, argument options) derived from config — the only things a brain may choose | Config |
 | Decision type | `src/types.ts` | `Decision = { intent, target?, confidence, source }`, `Brain` interface | — |
 | Shortcut brain | `src/brains/shortcut.ts` | Exact (normalized) phrase → decision from memory | Memory |
-| Jev brain | `src/brains/jev.ts` | POST to `JEV_URL` (`/v1/systemone`) with typed choice questions; returns decision + probability | fetch |
+| Jev brain | `src/brains/jev.ts` | POST to `JEV_URL` (OpenRouter Decisions API) with typed choice questions; returns decision + probability | fetch |
 | Claude Code brain | `src/brains/claudeCode.ts` | Spawn `claude -p` with tools disabled and a JSON schema; parse decision | child_process |
 | OpenRouter brain | `src/brains/openrouter.ts` | Chat-completions slot; disabled unless `OPENROUTER_LLM_ENABLED=true` | fetch |
 | Brain chain | `src/brainChain.ts` | Try brains in order; accept first decision ≥ its threshold; fall through otherwise | brains |
@@ -83,7 +83,8 @@ Node wins: already installed, native `fetch` for Jev/OpenRouter, built-in `node:
 ```json
 {
   "chrome": { "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", "profile": "Default" },
-  "vscode": { "command": "code" },
+  "vscode": { "path": "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe" },
+  "claude": { "path": "%APPDATA%\\npm\\node_modules\\@anthropic-ai\\claude-code\\bin\\claude.exe" },
   "apps": {
     "outlook": { "description": "Outlook email", "url": "https://outlook.office.com/mail/" },
     "teams":   { "description": "Microsoft Teams", "url": "https://teams.microsoft.com/" },
@@ -125,8 +126,8 @@ The catalog exposes these intents; `target` must be one of the listed keys:
 All brains implement `decide(text, catalog, memoryFacts): Promise<Decision | null>`.
 
 - **Shortcut** — normalizes text (lowercase, trim, collapse spaces, strip punctuation and a leading "jarvis"), looks up `shortcut:` lines. Confidence 1.0.
-- **Jev** — enabled only if `JEV_ENABLED=true` **and** `OPENROUTER_API_KEY` is set (else logs a one-time warning and is skipped). Sends one `choice` question over the intent+target combinations (flattened, e.g. `open_app:teams`) to `JEV_URL` (default `https://openrouter.ai/api/v1/systemone`, model `JEV_MODEL` default `typesafe/jev-1.13`). Accept if probability ≥ `JEV_THRESHOLD` (default 0.75). Never used for `remember_fact` (needs free text) — falls through. Timeout 5 s → fall through. The request/response shape is isolated in this one file so it can be adjusted against the live API docs without touching anything else.
-- **Claude Code** — runs `claude -p --model haiku --tools "" --no-session-persistence --output-format json --json-schema <schema> --system-prompt <prompt>` with the user text on stdin. The system prompt lists the catalog and memory facts and says to output only a decision. Model overridable via `CLAUDE_BRAIN_MODEL`. Timeout 60 s. Invalid/unknown output → `unknown`.
+- **Jev** — enabled only if `JEV_ENABLED=true` **and** `OPENROUTER_API_KEY` is set (else logs a one-time warning and is skipped). Sends one `choice` question over the intent+target combinations (flattened, e.g. `open_app:teams`) to `JEV_URL` (default `https://openrouter.ai/api/alpha/decisions`, body `{ model, state, questions: { action: { type: "choice", instructions, criteria } } }`, response `answers.action.{choice, probabilities}`; model `JEV_MODEL` default `typesafe/jev-1.13`). Accept if probability ≥ `JEV_THRESHOLD` (default 0.75). Never used for `remember_fact` (needs free text) — falls through. Timeout 5 s → fall through. The request/response shape is isolated in this one file so it can be adjusted against the live API docs without touching anything else.
+- **Claude Code** — runs `<claude.path> -p --model haiku --tools "" --no-session-persistence --output-format json --json-schema <schema> --system-prompt <prompt>` with the user text on stdin. The system prompt lists the catalog and memory facts and says to output only a decision. Model overridable via `CLAUDE_BRAIN_MODEL`. Timeout 60 s. Invalid/unknown output → `unknown`.
 - **OpenRouter LLM** — present, off unless `OPENROUTER_LLM_ENABLED=true`; placed before Claude Code when on.
 
 Chain order: Shortcut → Jev → OpenRouter LLM → Claude Code. First non-null decision wins.
@@ -142,7 +143,7 @@ Chain order: Shortcut → Jev → OpenRouter LLM → Claude Code. First non-null
 
 - **openUrl(url)** → `chrome.exe --profile-directory=<profile> <url>`.
 - **openApp** → `openUrl` or spawn `exe` detached.
-- **openWorkspace** → `code <folder>` (detached) and, if claude mode ≠ none, `wt.exe -d <folder> claude --resume <id>` / `claude --continue`.
+- **openWorkspace** → `<vscode.path> <folder>` (detached) and, if claude mode ≠ none, `wt.exe -d <folder> <claude.path> --resume <id>` / `claude --continue`.
 - **runRoutine** → run each step sequentially; collect per-step ok/failed; report a one-line summary.
 
 A missing executable yields a clear message (e.g. "VS Code command 'code' not found — install VS Code or set vscode.command") and does not crash Jarvis.
@@ -186,7 +187,7 @@ Built-ins handled without any brain: `help`, `list` (shows catalog), `memory` (p
 |---|---|---|
 | `JEV_ENABLED` | `false` | turn Jev brain on |
 | `OPENROUTER_API_KEY` | — | key for Jev and OpenRouter LLM |
-| `JEV_URL` | `https://openrouter.ai/api/v1/systemone` | point at OpenRouter or a local Laya |
+| `JEV_URL` | `https://openrouter.ai/api/alpha/decisions` | point at OpenRouter or a local Laya |
 | `JEV_MODEL` | `typesafe/jev-1.13` | Jev model id |
 | `JEV_THRESHOLD` | `0.75` | min probability to accept |
 | `OPENROUTER_LLM_ENABLED` | `false` | turn LLM slot on |

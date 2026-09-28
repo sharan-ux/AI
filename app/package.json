@@ -1,0 +1,23 @@
+{
+  "name": "jarvis-app",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "main/main.js",
+  "scripts": {
+    "postinstall": "node tools/vendor-three.mjs",
+    "start": "electron .",
+    "smoke": "electron . --smoke",
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "dependencies": {
+    "@huggingface/transformers": "3.8.1",
+    "@picovoice/porcupine-web": "4.0.1",
+    "@picovoice/web-voice-processor": "4.0.10",
+    "kokoro-js": "1.2.1",
+    "three": "0.160.0"
+  },
+  "devDependencies": {
+    "electron": "44.4.5"
+  }
+}

@@ -1,0 +1,8 @@
+html, body { margin: 0; height: 100%; background: #000208; overflow: hidden; font-family: system-ui, sans-serif; }
+#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#hud { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); width: min(560px, 80vw); text-align: center; }
+#status-line { color: #9cc3ff; font-size: 15px; min-height: 22px; margin-bottom: 8px; text-shadow: 0 0 8px #1e5bd6; }
+#cmd { width: 100%; box-sizing: border-box; background: rgba(4, 14, 40, .55); color: #e6f1ff; border: 1px solid rgba(90, 150, 255, .3);
+       border-radius: 12px; padding: 10px 14px; font-size: 15px; outline: none; }
+#cmd:focus { border-color: #ffb347; box-shadow: 0 0 14px rgba(255, 179, 71, .35); }
+#error { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); color: #ffb19a; font-size: 14px; }
