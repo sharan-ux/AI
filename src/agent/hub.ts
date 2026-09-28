@@ -29,6 +29,7 @@ export interface HubDeps {
 }
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+const PROJECT_KEY = /^[A-Za-z][A-Za-z0-9]*$/;
 
 function formatMs(ms: number): string {
   if (ms >= 60000) { const m = Math.round(ms / 60000); return `${m} minute${m === 1 ? '' : 's'}`; }
@@ -72,9 +73,11 @@ export async function createHub(deps: HubDeps) {
   }
 
   // ---------- per-actor tokens ----------
+  // Reuse an existing actor's token rather than rotating it: mcpConfigFor runs before pool.start, so a
+  // failed duplicate start_worker (worker already running) must not invalidate the live worker's token.
   const tokenToActor = new Map<string, string>();
   function tokenFor(actor: string): string {
-    for (const [t, a] of tokenToActor) if (a === actor) tokenToActor.delete(t);
+    for (const [t, a] of tokenToActor) if (a === actor) return t;
     const t = randomBytes(24).toString('hex');
     tokenToActor.set(t, actor);
     return t;
@@ -240,6 +243,7 @@ export async function createHub(deps: HubDeps) {
   }
 
   async function resolveProject(project: string): Promise<string> {
+    if (!PROJECT_KEY.test(project)) throw new Error(`invalid project key: ${project}`);
     const known = projects().get(project);
     if (known) return known;
     const candidates = existsSync(config.agent.projectsRoot)
@@ -258,6 +262,7 @@ export async function createHub(deps: HubDeps) {
     const ticket = String(args.ticket ?? '').toUpperCase().replace(/\s+/, '-');
     if (!TICKET.test(ticket)) throw new Error(`not a ticket key: ${args.ticket}`);
     const project = String(args.project ?? ticket.split('-')[0]).toUpperCase();
+    if (!PROJECT_KEY.test(project)) throw new Error(`invalid project key: ${args.project}`);
     const repo = await resolveProject(project);
     const wt = await ensureWorktree({ repo, ticket, root: config.agent.worktreeRoot, git });
     const b = board();
@@ -352,7 +357,7 @@ export async function createHub(deps: HubDeps) {
         if (m) {
           const folder = resolve(value);
           if (!(await isRepoRoot(folder))) throw new Error(`${folder} is not the root of a git repository`);
-          const ok = await deps.askUser(`Remember that the ${m[1]} project is in ${folder}?`, 'confirm');
+          const ok = await askWithTimeout(`Remember that the ${m[1]} project is in ${folder}?`);
           if (ok !== true) return 'Okay, not remembered.';
           appendProject(memoryPath, m[1], folder);
           return 'Remembered.';

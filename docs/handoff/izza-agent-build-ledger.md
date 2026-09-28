@@ -84,3 +84,7 @@ Task 7: fix round 1/5 (5 addressed + minors; follow-ups: unvalidated start_worke
 Ruling: fix all three in round 2 — validate project key in hub and appendProject (memory.ts edit allowed); reuse existing actor tokens; confirm via askWithTimeout — cost if wrong: none.
 Task 7: minor (deferred): wt.exe treats ';' as subcommand separator — only a repo folder named with ';' could matter (config-derived, not external text).
 Task 7: fix round 2/5 dispatched.
+Batch B: fix round 2 implemented (workers 10/10; freeMemory injected in tests; checkStalls pumps queue).
+Task 7: fix round 2 implemented (hub 18/18, memory 11/11; project key validated in hub + appendProject; token reuse; confirm with timeout).
+Controller check: core 190/190, app 83/83. Snapshot pushed to github.com/sharan-ux/AI (main) at user request.
+Next: scoped re-reviews of B round 2 and T7 round 2, then final whole-branch review (opus).

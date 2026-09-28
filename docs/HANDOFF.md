@@ -144,16 +144,16 @@ She should understand and judge worker output like a human lead.
 
 Build ledger: `docs/handoff/izza-agent-build-ledger.md` (copied from `.superpowers/sdd/2026-09-28-izza-agent/progress.md`). Every ruling is recorded there with its cost-if-wrong.
 
-In flight at snapshot time:
-1. **Task 7 (hub) fix round 2.** This commit may contain it half-done; check that `npm test` is green.
-   - Validate the `project` key in `start_worker`/`resolveProject` and in `appendProject` (`src/memory.ts`), matching `/^[A-Za-z][A-Za-z0-9]*$/`. This blocks newline injection of fake `project:` memory lines.
-   - Reuse an actor's existing token, so a duplicate `start_worker` can't disable a live worker.
-   - The `remember project:` confirm must use the 10-minute ask timeout.
+Latest state (second push): core `npm test` 190/190, app 83/83. Both of these are **implemented but not yet re-reviewed**:
+1. **Task 7 (hub) fix round 2.**
+   - The `project` key is validated in `start_worker`/`resolveProject` and in `appendProject` (`src/memory.ts`), matching `/^[A-Za-z][A-Za-z0-9]*$/`. This blocks newline injection of fake `project:` memory lines.
+   - An actor's existing token is reused, so a duplicate `start_worker` can't disable a live worker.
+   - The `remember project:` confirm uses the 10-minute ask timeout.
 2. **Tasks 4–6 fix round 2.**
-   - `test/agent/workers.test.ts` helper should inject `freeMemory: () => Number.MAX_SAFE_INTEGER`.
-   - `checkStalls()` must also pump the queue, so workers held back for low memory start once memory frees up.
-3. Then:
-   - Scoped re-reviews of both.
+   - The worker tests inject `freeMemory`.
+   - `checkStalls()` pumps the queue, so workers held back for low memory start once memory frees up.
+3. Next:
+   - Scoped re-reviews of both fix rounds.
    - **Final whole-branch review** on the most capable model. Give it the deferred minors and rulings in the ledger.
    - One fix wave, then report "Rulings I made" to the user.
 
